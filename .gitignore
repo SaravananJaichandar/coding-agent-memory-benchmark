@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+.env
+.venv/
+venv/
+
+# Do not commit SWE-bench Verified corpus.
+# Download separately from https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified
+verified.parquet
+tasks.jsonl
+
+# Regenerated outputs — reproduce with the orchestrator
+treatment_results*.jsonl
+*_progress*.jsonl
+*_retry*.jsonl
+*_retry*.json
+
+# Cloned test repos
+repos/
