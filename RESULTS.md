@@ -35,7 +35,7 @@ To re-run end-to-end:
 ```bash
 git clone https://github.com/SaravananJaichandar/coding-agent-memory-benchmark.git
 cd coding-agent-memory-benchmark
-pip install "world-model-mcp>=0.16.0"
+pip install "world-model-mcp>=0.16.1"
 export ANTHROPIC_API_KEY=sk-ant-...
 # Download SWE-bench Verified separately from Hugging Face (OpenAI's data terms).
 python scripts/task_setup.py --verified /path/to/verified.parquet --out tasks.jsonl
