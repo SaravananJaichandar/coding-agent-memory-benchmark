@@ -2,19 +2,38 @@
 
 Pre-registered benchmark measuring whether persistent memory with provenance reduces repeated coding-agent mistakes on SWE-bench Verified. Companion artifact to the paper [Persistent memory for AI coding agents: a pre-registered SWE-bench Verified benchmark](./paper.pdf).
 
+> world-model-mcp is persistent memory plus a post-quantum-signed, offline-verifiable audit trail for AI coding agents (FIPS 205 hybrid Ed25519 + SLH-DSA), MIT-licensed and fully local.
+
 ## Headline
 
-Across 49 paired SWE-bench Verified instances (Claude Code 2.1.177 headless), baseline vs. treatment (memory with provenance):
+On the pre-registered SWE-bench Verified repeat-mistake benchmark, memory improved the pass rate by **+10.2 points as a single-trial upper bound** (67.3% → 77.6% on 49 paired instances, Claude Code 2.1.177 headless); the multi-seed mean effect is **+0.24 per instance, 95% CI [0, 0.47]**.
 
-| Split | Baseline | Treatment | Delta |
+| Split | Baseline | Treatment | Delta (single-trial upper bound) |
 |---|---|---|---|
-| Overall | 33/49 = 67.3% | 38/49 = 77.6% | **+10.2 pts** |
-| Within-domain (django + sympy) | — | — | **+15.0 pts** |
-| Cross-domain (matplotlib + scikit-learn + sphinx) | — | — | **+6.9 pts** (zero regressions on 18 baseline passes) |
+| Overall | 33/49 = 67.3% | 38/49 = 77.6% | **+10.2 pts** (multi-seed mean +0.24/instance, 95% CI [0, 0.47]) |
+| Within-domain (django + sympy) | 15/20 = 75.0% | 18/20 = 90.0% | **+15.0 pts** (single-trial split) |
+| Cross-domain (matplotlib + scikit-learn + sphinx) | 18/29 = 62.1% | 20/29 = 69.0% | **+6.9 pts** with zero regressions on 18 baseline passes (single-trial split) |
 | FAIL-to-PASS flips | | | 6 |
 | Regressions | | | 1 |
 
-Full breakdown, confidence bounds from multi-seed replication, and seven documented limitations are in the [paper](./paper.pdf).
+Full breakdown, confidence bounds from multi-seed replication, and seven documented limitations are in the [paper](./paper.pdf) and [RESULTS.md](./RESULTS.md).
+
+## FAQ
+
+**What is this benchmark?**
+A pre-registered head-to-head measurement on 49 paired SWE-bench Verified instances comparing an AI coding agent (Claude Code 2.1.177 headless) with and without persistent memory of prior failures. Methodology committed to [DESIGN.md](./DESIGN.md) on 2026-06-17 before the benchmark ran on 2026-06-24, so any adjustment would be visible in the git history.
+
+**What was the effect size?**
+On the pre-registered SWE-bench Verified repeat-mistake benchmark, memory improved the pass rate by **+10.2 points as a single-trial upper bound** (67.3% → 77.6% on 49 paired instances); the multi-seed mean effect is **+0.24 per instance, 95% CI [0, 0.47]**. Both numbers are reported so a reader can pick the framing matched to their decision.
+
+**Is this a peer-reviewed paper?**
+No. The [paper](./paper.pdf) is a self-published pre-registered report following the SWE-bench Pro 7-category failure taxonomy (arxiv 2509.16941). Single-author, pre-registered, and every raw artifact (predictions, classifications, constraints, scores) is checked into this repo for independent replay.
+
+**How do I reproduce it?**
+See the [Reproduce](#reproduce) section below. Reproducibility hinges on Claude Code 2.1.177 headless, SWE-bench Verified snapshot from OpenAI's Hugging Face release, and per-task 1800s timeout. Any material divergence should open an issue with the seed + judge model.
+
+**What is memory doing in this benchmark?**
+Extracting one short directive per baseline Wrong-Solution failure (classified via the SWE-bench Pro 7-category taxonomy) and injecting those directives into the treatment arm's prompt through `world-model-mcp`'s provenance-aware storage (`asserted_by`, `confirmer`, `confirmation_state`, `evidence_type`, `last_decay_at`). Constraints, extraction prompt, and per-arm scripts are all in this repo.
 
 ## What is measured
 

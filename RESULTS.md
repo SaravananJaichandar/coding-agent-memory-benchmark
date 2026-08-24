@@ -4,15 +4,49 @@ This document reports the v0.9 SWE-bench Verified results testing whether the pe
 
 ---
 
-**Headline numbers**
+## Results
 
-| Subset | Baseline | Treatment | Delta | Flips (FAIL to PASS) | Regressions (PASS to FAIL) |
+On the pre-registered SWE-bench Verified repeat-mistake benchmark, memory improved the pass rate by **+10.2 points as a single-trial upper bound** (67.3% → 77.6% on 49 paired instances, Claude Code 2.1.177 headless); the multi-seed mean effect is **+0.24 per instance, 95% CI [0, 0.47]**.
+
+| Subset | Baseline | Treatment | Delta (single-trial upper bound) | Flips (FAIL to PASS) | Regressions (PASS to FAIL) |
 |---|---|---|---|---|---|
-| Subset 1 (within-domain) | 15/20 = 75.0% | 18/20 = 90.0% | **+15.0 pts** | 4 | 1 |
-| Subset 2 (cross-domain) | 18/29 = 62.1% | 20/29 = 69.0% | **+6.9 pts** | 2 | 0 |
-| **Combined (paired)** | **33/49 = 67.3%** | **38/49 = 77.6%** | **+10.2 pts** | **6** | **1** |
+| Subset 1 (within-domain) | 15/20 = 75.0% | 18/20 = 90.0% | **+15.0 pts** (single-trial split) | 4 | 1 |
+| Subset 2 (cross-domain) | 18/29 = 62.1% | 20/29 = 69.0% | **+6.9 pts** with zero regressions on 18 baseline passes (single-trial split) | 2 | 0 |
+| **Combined (paired)** | **33/49 = 67.3%** | **38/49 = 77.6%** | **+10.2 pts** (multi-seed mean +0.24/instance, 95% CI [0, 0.47]) | **6** | **1** |
 
 The within-domain result confirms the learning loop works when extracted constraints match the failure mode. The cross-domain result is real but smaller, with zero regressions on out-of-domain tasks, indicating that domain-specific constraints from one repo family carry a non-zero transfer benefit at zero observed cost on the families tested.
+
+## Reproducibility
+
+Every raw artifact needed to reproduce these numbers is committed to this repository:
+
+- **Pre-registration**: [DESIGN.md](./DESIGN.md), committed 2026-06-17 (nine days before the benchmark ran). Git history is authoritative.
+- **Task selection**: `tasks.jsonl` (49 paired SWE-bench Verified instances). Regenerable from the SWE-bench Verified Hugging Face snapshot via `scripts/task_setup.py`.
+- **Baseline predictions**: `baseline_results.jsonl` + per-repo prediction JSON files.
+- **Failure classification**: `baseline_classified.jsonl` (SWE-bench Pro 7-category taxonomy, arxiv 2509.16941).
+- **Extracted constraints**: `constraints.json` (one directive per Wrong-Solution failure).
+- **Treatment predictions**: `treatment_results.jsonl` (Subset 2 arm loaded ONLY Subset 1 constraints to isolate cross-domain transfer).
+- **Judge output + scoring**: official SWE-bench harness on SWE-bench Verified.
+- **Environment**: Claude Code 2.1.177 headless, allowed tools {Read, Edit, Bash, Glob, Grep, Write}, acceptEdits permission mode, per-task 1800s timeout.
+- **Zenodo DOI**: [10.5281/zenodo.21076824](https://doi.org/10.5281/zenodo.21076824) archives this repository state at the point the paper was written.
+
+To re-run end-to-end:
+
+```bash
+git clone https://github.com/SaravananJaichandar/coding-agent-memory-benchmark.git
+cd coding-agent-memory-benchmark
+pip install "world-model-mcp>=0.16.0"
+export ANTHROPIC_API_KEY=sk-ant-...
+# Download SWE-bench Verified separately from Hugging Face (OpenAI's data terms).
+python scripts/task_setup.py --verified /path/to/verified.parquet --out tasks.jsonl
+python scripts/orchestrator.py --tasks tasks.jsonl --arm baseline --out baseline_results.jsonl
+python scripts/failure_classifier.py --results baseline_results.jsonl --out baseline_classified.jsonl
+python scripts/learning_hook.py --classified baseline_classified.jsonl --out constraints.json
+python scripts/orchestrator.py --tasks tasks.jsonl --arm treatment --constraints constraints.json --out treatment_results.jsonl
+python scripts/score.py --baseline baseline_results.jsonl --treatment treatment_results.jsonl
+```
+
+Any material divergence from the headline numbers should file an issue with the seed and the judge model. Multi-seed replication (documented in Section 6 of the paper) is what informs the multi-seed mean + 95% CI in the headline row above.
 
 ---
 
